@@ -4,16 +4,18 @@ file(
 	${CMAKE_CURRENT_SOURCE_DIR}/*.hpp
 )
 
+set(LIB_PROJECT_TITLE ${SOLUTION_TITLE}_lib)
+
 add_library(
-	Example_lib STATIC ${SRC_FILES}
+	${LIB_PROJECT_TITLE} STATIC ${SRC_FILES}
 )
 
 target_include_directories(
-	Example_lib PUBLIC 
+	${LIB_PROJECT_TITLE} PUBLIC 
 	${CMAKE_CURRENT_SOURCE_DIR}/../include
 )
 
 target_compile_features(
-	Example_lib PUBLIC 
+	${LIB_PROJECT_TITLE} PUBLIC 
 	cxx_std_17
 )

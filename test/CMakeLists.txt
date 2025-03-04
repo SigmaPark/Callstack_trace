@@ -4,12 +4,14 @@ file(
 	${CMAKE_CURRENT_SOURCE_DIR}/*.hpp
 )
 
+set(TEST_PROJECT_TITLE ${SOLUTION_TITLE}_test)
+
 add_executable(
-	Example_test 
+	${TEST_PROJECT_TITLE} 
 	${SRC_FILES}
 )
 
 target_link_libraries(
-	Example_test PRIVATE
-	Example_lib
+	${TEST_PROJECT_TITLE} PRIVATE
+	${SOLUTION_TITLE}_lib
 )

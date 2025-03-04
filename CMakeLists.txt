@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.5)
 
+set(SOLUTION_TITLE Example)
+
 project(
-	Example_project
+	${SOLUTION_TITLE}_sln
 	LANGUAGES CXX
 )
 
