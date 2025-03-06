@@ -1,19 +1,6 @@
 #include "Foo.hpp"
 
 
-prac::Callstack::Callstack() : _hash{0}, _count{0}, _address_arr{0, }
-{
-	_count = CaptureStackBackTrace(0, Max_stack_depth, _address_arr, &_hash);
-}
-
-
-prac::Symbol_lookup::Symbol_lookup() : _handle(GetCurrentProcess())
-{
-	SymInitialize(_handle, NULL, TRUE);
-	SymSetOptions(SYMOPT_LOAD_LINES);
-}
-
-
 template<class T>
 class Useless
 {
@@ -24,6 +11,19 @@ public:
 private:
 	mutable std::byte _buf[sizeof(T)];
 };
+
+
+prac::Callstack::Callstack() : _count{0}, _address_arr{0, }
+{
+	_count = CaptureStackBackTrace(0, Max_stack_depth, _address_arr, &Useless<ULONG>{});
+}
+
+
+prac::Symbol_lookup::Symbol_lookup() : _handle(GetCurrentProcess())
+{
+	SymInitialize(_handle, NULL, TRUE);
+	SymSetOptions(SYMOPT_LOAD_LINES);
+}
 
 
 auto prac::Symbol_lookup::symbol_string(void const* const address) const-> std::string
@@ -43,7 +43,6 @@ auto prac::Symbol_lookup::symbol_string(void const* const address) const-> std::
 
 			return res;
 		}();
-
 
 	char buffer[_String_buffer_size] = {0, };
 

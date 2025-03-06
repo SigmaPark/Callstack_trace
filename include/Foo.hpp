@@ -25,11 +25,9 @@ public:
 	Callstack();
 
 	auto operator[](const std::size_t index) const noexcept-> void*{  return _address_arr[index];  }
-	auto hash() const noexcept-> unsigned long{  return _hash;  }
 	auto count() const noexcept-> std::size_t{  return _count;  }
 
 private:
-	unsigned long _hash;
 	std::size_t _count;
 	void* _address_arr[Max_stack_depth];
 };
