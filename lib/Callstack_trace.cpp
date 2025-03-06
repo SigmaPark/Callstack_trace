@@ -43,7 +43,7 @@ static auto _Symbol_string(void* const handle, void const* const address)-> std:
 
 prac::Callstack::Callstack() 
 :	_address_arr{0, }
-,	_depth( CaptureStackBackTrace(0, Max_stack_depth, _address_arr, &Useless<ULONG>{}) )
+,	_depth( CaptureStackBackTrace(0, Max_stack_depth + 1, _address_arr, &Useless<ULONG>{}) - 1 )
 {}
 
 
@@ -97,11 +97,14 @@ auto _Symbol_string(void* const handle, void const* const address)-> std::string
 	;	SymGetLineFromAddr64(handle, addr, &Useless<DWORD>{}, &line)
 	)
 		sprintf_s
-		(	buffer, Max_string_size_per_line, "%s(%d) : %s"
-		,	line.FileName, line.LineNumber, symbol.Name
+		(	buffer, Max_string_size_per_line, "[%p] %s(%d) : %s"
+		,	address, line.FileName, line.LineNumber, symbol.Name
 		);
 	else
-		sprintf_s(buffer, Max_string_size_per_line, "No line info : %s", symbol.Name);
+		sprintf_s
+		(	buffer, Max_string_size_per_line, "[%p] No line info : %s"
+		,	address, symbol.Name
+		);
 
 	return buffer;	
 }
@@ -123,14 +126,14 @@ auto _Symbol_string(void* const handle, void const* const address)-> std::string
 
 prac::Callstack::Callstack() 
 :	_address_arr{0, }
-,	_depth( backtrace(_address_arr, Max_stack_depth) )
+,	_depth( backtrace(_address_arr, Max_stack_depth + 1) - 1 )
 {}
 
 
 auto prac::Callstack::symbol_strings() const-> std::vector<std::string>
 {
 	std::unique_ptr<char*, decltype(&free)> strings
-	(	backtrace_symbols(_address_arr, size())
+	(	backtrace_symbols(_address_arr + 1, size())
 	,	&free
 	);
 
