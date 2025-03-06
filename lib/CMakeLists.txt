@@ -1,3 +1,9 @@
+#  SPDX-FileCopyrightText: (c) 2025 Jin-Eon Park <greengb@naver.com> <sigma@gm.gist.ac.kr>
+#   SPDX-License-Identifier: MIT License
+#
+#=========#=========#=========#=========#=========#=========#=========#=========#=========#=========
+
+
 set(LIB_PROJECT_TITLE ${SOLUTION_TITLE}_lib)
 set(INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../include)
 

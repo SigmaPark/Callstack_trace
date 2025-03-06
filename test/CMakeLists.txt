@@ -1,3 +1,9 @@
+#  SPDX-FileCopyrightText: (c) 2025 Jin-Eon Park <greengb@naver.com> <sigma@gm.gist.ac.kr>
+#   SPDX-License-Identifier: MIT License
+#
+#=========#=========#=========#=========#=========#=========#=========#=========#=========#=========
+
+
 set(TEST_PROJECT_TITLE ${SOLUTION_TITLE}_test)
 
 file(

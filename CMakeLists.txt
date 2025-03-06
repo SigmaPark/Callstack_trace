@@ -1,3 +1,9 @@
+#  SPDX-FileCopyrightText: (c) 2025 Jin-Eon Park <greengb@naver.com> <sigma@gm.gist.ac.kr>
+#   SPDX-License-Identifier: MIT License
+#
+#=========#=========#=========#=========#=========#=========#=========#=========#=========#=========
+
+
 cmake_minimum_required(VERSION 3.5)
 
 set(SOLUTION_TITLE Callstack_trace)

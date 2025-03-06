@@ -1,3 +1,9 @@
+/*  SPDX-FileCopyrightText: (c) 2025 Jin-Eon Park <greengb@naver.com> <sigma@gm.gist.ac.kr>
+*   SPDX-License-Identifier: MIT License
+*/
+//========//========//========//========//=======#//========//========//========//========//=======#
+
+
 #pragma once
 #include <cstddef>
 #include <string>
