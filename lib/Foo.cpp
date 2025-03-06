@@ -1,7 +1,4 @@
 #include "Foo.hpp"
-#include <Windows.h>
-#include <DbgHelp.h>
-#pragma comment(lib, "dbghelp.lib")
 
 
 template<class T>
@@ -14,6 +11,13 @@ public:
 private:
 	mutable std::byte _buf[sizeof(T)];
 };
+//========//========//========//========//=======#//========//========//========//========//=======#
+
+
+#ifdef WIN32
+#include <Windows.h>
+#include <DbgHelp.h>
+#pragma comment(lib, "dbghelp.lib")
 
 
 struct _Symbol_buffer : public SYMBOL_INFO
@@ -26,7 +30,10 @@ private:
 	// Won't be used directly but will be overwrited by pointer.
 	char _buffer_for_name_string[_String_buffer_size_for_name]; 
 };
-//========//========//========//========//=======#//========//========//========//========//=======#
+
+
+static auto _Symbol_string(void* const handle, void const* const address)-> std::string;
+//--------//--------//--------//--------//-------#//--------//--------//--------//--------//-------#
 
 
 prac::Callstack::Callstack() 
@@ -53,13 +60,13 @@ auto prac::Callstack::symbol_strings() const-> std::vector<std::string>
 	res.reserve(size());
 
 	for(auto const address : *this)
-		res.emplace_back( _Symbol_string(cur_handle, address) );
+		res.emplace_back( ::_Symbol_string(cur_handle, address) );
 
 	return res;
 }
 
 
-auto prac::Callstack::_Symbol_string(void* const handle, void const* const address)-> std::string
+auto _Symbol_string(void* const handle, void const* const address)-> std::string
 {
 	if(address == nullptr)
 		return "";
@@ -67,16 +74,17 @@ auto prac::Callstack::_Symbol_string(void* const handle, void const* const addre
 
 	auto const addr = reinterpret_cast<DWORD64>(address);
 
-	_Symbol_buffer const symbol
+	::_Symbol_buffer const symbol
 	=	[handle, addr]
 		{
-			_Symbol_buffer res;
+			::_Symbol_buffer res;
 
 			SymFromAddr(handle, addr, 0, &res);
 
 			return res;
 		}();
 
+	std::size_t constexpr Max_string_size_per_line = 0x400;
 	char buffer[Max_string_size_per_line] = {0, };
 
 	if
@@ -92,11 +100,15 @@ auto prac::Callstack::_Symbol_string(void* const handle, void const* const addre
 
 	return buffer;	
 }
+//--------//--------//--------//--------//-------#//--------//--------//--------//--------//-------#
 
 
-_Symbol_buffer::_Symbol_buffer() noexcept : _buffer_for_name_string{0, }
+::_Symbol_buffer::_Symbol_buffer() noexcept : _buffer_for_name_string{0, }
 {
 	SYMBOL_INFO::MaxNameLen = static_cast<ULONG>(_String_buffer_size_for_name);
 	SYMBOL_INFO::SizeOfStruct = sizeof(SYMBOL_INFO);
 }
+#else
 
+
+#endif

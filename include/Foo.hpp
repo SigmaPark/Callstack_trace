@@ -15,7 +15,7 @@ namespace prac
 class prac::Callstack
 {
 public:
-	static constexpr std::size_t Max_stack_depth = 0x40, Max_string_size_per_line = 0x400;
+	static constexpr std::size_t Max_stack_depth = 0x40;
 
 	Callstack();
 
@@ -28,6 +28,4 @@ public:
 private:
 	void* _address_arr[Max_stack_depth];
 	std::size_t _depth;
-
-	static auto _Symbol_string(void* const handle, void const* const address)-> std::string;
 };
