@@ -1,13 +1,13 @@
 #pragma once
 #include <cstddef>
 #include <string>
+#include <vector>
 
 
 namespace prac
 {
 
 	class Callstack;
-	class Symbol_lookup;
 
 }
 
@@ -15,7 +15,7 @@ namespace prac
 class prac::Callstack
 {
 public:
-	static constexpr std::size_t Max_stack_depth = 0x40;
+	static constexpr std::size_t Max_stack_depth = 0x40, Max_string_size_per_line = 0x400;
 
 	Callstack();
 
@@ -23,20 +23,11 @@ public:
 	auto end() const noexcept-> void const* const*{  return begin() + size(); }
 	auto size() const noexcept-> std::size_t{  return _depth;  }
 
+	auto symbol_strings() const-> std::vector<std::string>;
+
 private:
-	std::size_t _depth;
 	void* _address_arr[Max_stack_depth];
-};
+	std::size_t _depth;
 
-
-class prac::Symbol_lookup
-{
-public:
-	Symbol_lookup();
-
-	auto symbol_string(void const* const address) const-> std::string;
-
-private:
-	static std::size_t constexpr _String_buffer_size_for_1_line = 0x400;
-	void* _handle;
+	static auto _Symbol_string(void* const handle, void const* const address)-> std::string;
 };
