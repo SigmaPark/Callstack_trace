@@ -5,19 +5,12 @@
 static void Test01()
 {
 	{
-	#if 0
-		prac::SymbolLookup lookup;
+		prac::Symbol_lookup const lookup;
+		prac::Callstack const callstack; 
 
-		prac::Callstack callstack; 
-		for(size_t i = 0;  i < callstack.count();  ++i)
-		{
-			std::string const str = lookup.symbol_string(callstack[i]);
-			std::cout << str << std::endl;
-		}
-	#endif
+		for(std::size_t i = 0;  i < callstack.count();  ++i)
+			std::cout << lookup.symbol_string(callstack[i]) << std::endl;
 	}
-
-	
 }
 
 

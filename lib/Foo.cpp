@@ -14,26 +14,43 @@ prac::Symbol_lookup::Symbol_lookup() : _handle(GetCurrentProcess())
 }
 
 
+template<class T>
+class Useless
+{
+public:
+	operator T&() const noexcept{  return *&*this;  }
+	auto operator&() const noexcept-> T*{  return reinterpret_cast<T*>(_buf);  }
+
+private:
+	mutable std::byte _buf[sizeof(T)];
+};
+
+
 auto prac::Symbol_lookup::symbol_string(void const* const address) const-> std::string
 {
 	if(address == nullptr)
 		return "";
-	
 
-	DWORD displacement = 0;
-	auto addr = reinterpret_cast<DWORD64>(address);
 
-	Symbol_buffer symbol;
+	auto const addr = reinterpret_cast<DWORD64>(address);
+
+	Symbol_buffer const symbol
+	=	[handle = _handle, addr]
+		{
+			Symbol_buffer res;
+
+			SymFromAddr(handle, addr, 0, &res);
+
+			return res;
+		}();
+
+
 	char buffer[_String_buffer_size] = {0, };
 
-	// 주소에 대응하는 심볼의 파일이름 + line을 저장할 객체		
-	IMAGEHLP_LINE64 line;
-	line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
-
-	// SymbolBuffer 객체에 address에 대응하는 심볼 이름(함수명) 저장
-	SymFromAddr(_handle, addr, 0, &symbol);
-
-	if( SymGetLineFromAddr64(_handle, addr, &displacement, &line) )
+	if
+	(	IMAGEHLP_LINE64 line{sizeof(IMAGEHLP_LINE64)}
+	;	SymGetLineFromAddr64(_handle, addr, &Useless<DWORD>{}, &line)
+	)
 		sprintf_s
 		(	buffer, _String_buffer_size, "%s(%d) : %s"
 		,	line.FileName, line.LineNumber, symbol.Name

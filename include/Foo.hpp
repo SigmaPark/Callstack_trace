@@ -3,6 +3,7 @@
 #include <Windows.h>
 #include <DbgHelp.h>
 #include <string>
+#pragma comment(lib, "dbghelp.lib")
 
 
 namespace prac
