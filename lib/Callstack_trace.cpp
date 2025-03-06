@@ -1,6 +1,7 @@
 #include "Callstack_trace.hpp"
 
 
+#ifdef WIN32
 template<class T>
 class Useless
 {
@@ -11,10 +12,8 @@ public:
 private:
 	mutable std::byte _buf[sizeof(T)];
 };
-//========//========//========//========//=======#//========//========//========//========//=======#
 
 
-#ifdef WIN32
 #include <Windows.h>
 #include <DbgHelp.h>
 #pragma comment(lib, "dbghelp.lib")
