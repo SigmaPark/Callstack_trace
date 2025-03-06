@@ -10,7 +10,7 @@ static void Test01()
 		prac::SymbolLookup lookup;
 
 		prac::Callstack callstack; 
-		for(size_t i = 0;  i < callstack.GetCount();  ++i)
+		for(size_t i = 0;  i < callstack.count();  ++i)
 		{
 			std::string const& str = lookup.GetSymbolString(callstack[i]);
 			std::cout << str << std::endl;
