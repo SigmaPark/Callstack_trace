@@ -2,12 +2,15 @@
 #include <cstddef>
 #include <Windows.h>
 #include <DbgHelp.h>
+#include <string>
 
 
 namespace prac
 {
 
 	class Callstack;
+	class Symbol_lookup;
+
 	struct Symbol_buffer;
 
 }
@@ -37,4 +40,17 @@ struct prac::Symbol_buffer : public SYMBOL_INFO
 	char buffer[Buffer_size];
 
 	Symbol_buffer();
+};
+
+
+class prac::Symbol_lookup
+{
+public:
+	Symbol_lookup();
+
+	auto symbol_string(void const* const address) const-> std::string;
+
+private:
+	static std::size_t constexpr _String_buffer_size = 0x400;
+	HANDLE _handle;
 };

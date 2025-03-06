@@ -1,5 +1,4 @@
 #include "Foo.hpp"
-#include <string>
 #include <iostream>
 
 
@@ -12,7 +11,7 @@ static void Test01()
 		prac::Callstack callstack; 
 		for(size_t i = 0;  i < callstack.count();  ++i)
 		{
-			std::string const& str = lookup.GetSymbolString(callstack[i]);
+			std::string const str = lookup.symbol_string(callstack[i]);
 			std::cout << str << std::endl;
 		}
 	#endif
