@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-set(SOLUTION_TITLE Example)
+set(SOLUTION_TITLE Callstack_trace)
 
 project(
 	${SOLUTION_TITLE}_sln
