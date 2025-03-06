@@ -38,7 +38,7 @@ static auto _Symbol_string(void* const handle, void const* const address)-> std:
 
 prac::Callstack::Callstack() 
 :	_address_arr{0, }
-,	_depth{ CaptureStackBackTrace(0, Max_stack_depth, _address_arr, &Useless<ULONG>{}) }
+,	_depth( CaptureStackBackTrace(0, Max_stack_depth, _address_arr, &Useless<ULONG>{}) )
 {}
 
 
@@ -108,7 +108,37 @@ auto _Symbol_string(void* const handle, void const* const address)-> std::string
 	SYMBOL_INFO::MaxNameLen = static_cast<ULONG>(_String_buffer_size_for_name);
 	SYMBOL_INFO::SizeOfStruct = sizeof(SYMBOL_INFO);
 }
-#else
+//========//========//========//========//=======#//========//========//========//========//=======#
 
+
+#elif defined(__unix__) || defined(__unix) || defined(unix)
+#include <execinfo.h>
+#include <memory>
+
+
+prac::Callstack::Callstack() 
+:	_address_arr{0, }
+,	_depth( backtrace(_address_arr, Max_stack_depth) )
+{}
+
+
+auto prac::Callstack::symbol_strings() const-> std::vector<std::string>
+{
+	std::unique_ptr<char*, decltype(&free)> strings
+	(	backtrace_symbols(_address_arr, size())
+	,	&free
+	);
+
+	std::vector<std::string> res;
+	
+	res.reserve(size());
+
+	for(std::size_t i = 0;  i < size();  ++i)
+		res.emplace_back(strings.get()[i]);
+
+	return res;	
+}
+
+#else
 
 #endif
