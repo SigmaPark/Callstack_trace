@@ -4,24 +4,27 @@
 //========//========//========//========//=======#//========//========//========//========//=======#
 
 
-#include "Callstack_trace.hpp"
-#include <iostream>
+#include "Test_Callstack_trace.hpp"
 
 
-static void Test01()
+int main(int const /*argc*/, char const* const /*argv*/ [])
 {
+	try
 	{
-		prac::Callstack const callstack; 
-
-		for(auto const& line : callstack.symbol_strings())
-			std::cout << line << std::endl;
+		prac::test::Test_Callstack_trace::test();
 	}
-}
+	catch(std::exception& xc)
+	{
+		std::cerr << "Test failed by an exception : " << xc.what() << std::endl;
 
+		return -1;
+	}
+	catch(...)
+	{
+		std::cerr << "Test failed by an unexpected exception ." << std::endl;
 
-int main(int const /*argc*/, char const* const /*argv*/[])
-{
-	::Test01();
+		return -1;
+	}
 
 	return 0;
 }
