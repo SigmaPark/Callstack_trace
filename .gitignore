@@ -446,7 +446,7 @@ FodyWeavers.xsd
 [Oo]ut/
 
 # ignore patterns
-/[*/]_*.d
+/[*/]_*
 
 
 # End of https://www.toptal.com/developers/gitignore/api/visualstudio,visualstudiocode,cmake
