@@ -85,7 +85,61 @@ static void Test01()
 }
 
 
+BEGIN_CODE_BLOCK(test2_ex)
+namespace test2_detail
+{
+
+	static void wrapper_level2()
+	{
+		// Skip 2 frames: this function and wrapper_level1
+		prac::Callstack const callstack{2};
+
+		auto const strings = callstack.symbol_strings();
+
+		for(auto const& line : strings)
+			std::cout << line << std::endl;
+
+		// Verify that the first visible frame is wrapper_level0 or its caller
+		SGM_H2U_ASSERT(callstack.size() >= 1);
+
+		// The first frame should NOT contain "wrapper_level2" or "wrapper_level1"
+		SGM_H2U_ASSERT(strings[0].find("wrapper_level2") == std::string::npos);
+		SGM_H2U_ASSERT(strings[0].find("wrapper_level1") == std::string::npos);
+	}
+
+	static void wrapper_level1()
+	{
+		wrapper_level2();
+	}
+
+	static void wrapper_level0()
+	{
+		wrapper_level1();
+	}
+
+}
+END_CODE_BLOCK(test2_ex)
+
+
+static void Test02()
+{
+	sgm::h2u::mdo
+	<<	sgm::h2u::Title(L"Frame Skipping for Wrapper Functions")
+	<<	LR"(
+		This test demonstrates the frame skipping feature that allows debugging tools
+		to exclude their own wrapper functions from the call stack output. By passing
+		a skip count to the Callstack constructor, the top N frames can be hidden,
+		revealing only the meaningful application-level call chain.
+		)"_mdo;
+
+	test2_detail::wrapper_level0();
+
+	sgm::h2u::mdo << sgm::h2u::Load_code_block(L"test2_ex");
+}
+
+
 SGM_HOW2USE_TESTS(prac::test::Test_, Callstack_trace, /**/)
 {   ::intro
 ,	::Test01
+,	::Test02
 };

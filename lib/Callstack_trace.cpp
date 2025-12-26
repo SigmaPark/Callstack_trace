@@ -41,9 +41,10 @@ static auto _Symbol_string(void* const handle, void const* const address)-> std:
 //--------//--------//--------//--------//-------#//--------//--------//--------//--------//-------#
 
 
-prac::Callstack::Callstack() 
+prac::Callstack::Callstack(unsigned int skip_frames)
 :	_address_arr{0, }
 ,	_depth( CaptureStackBackTrace(0, Max_stack_depth + 1, _address_arr, &Useless<ULONG>{}) - 1 )
+,	_skip_frames(skip_frames)
 {}
 
 
@@ -124,16 +125,17 @@ auto _Symbol_string(void* const handle, void const* const address)-> std::string
 #include <memory>
 
 
-prac::Callstack::Callstack() 
+prac::Callstack::Callstack(unsigned int skip_frames)
 :	_address_arr{0, }
 ,	_depth( backtrace(_address_arr, Max_stack_depth + 1) - 1 )
+,	_skip_frames(skip_frames)
 {}
 
 
 auto prac::Callstack::symbol_strings() const-> std::vector<std::string>
 {
 	std::unique_ptr<char*, decltype(&free)> strings
-	(	backtrace_symbols(_address_arr + 1, size())
+	(	backtrace_symbols(const_cast<void**>(begin()), size())
 	,	&free
 	);
 
