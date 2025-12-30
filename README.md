@@ -1,5 +1,5 @@
 # Introduction to Callstack Trace Library
-The cst::Callstack library provides a sophisticated yet elegantly simple solution   
+The cst::Callstack_Trace library provides a sophisticated yet elegantly simple solution   
 for capturing and analyzing call stack information in modern C++ applications. Born from   
 the necessity to debug complex software systems where understanding the execution flow   
 is paramount, this library bridges the gap between raw debugging tools and csttical   
@@ -12,7 +12,7 @@ systems. This architectural flexibility ensures that developers can maintain con
 debugging capabilities regardless of their target platform.  
 		  
 # Basic Usage with Function Call Chain
-This example demonstrates the fundamental usage of the cst::Callstack library   
+This example demonstrates the fundamental usage of the cst::Callstack_Trace library   
 by capturing a call stack within a nested function call scenario. The test creates   
 a simple call chain: func1() calls func2(), which then captures the stack trace   
 from within a lambda function.  
@@ -26,7 +26,7 @@ namespace test1_detail
 		auto Lambda_f   
 		=	[]  
 			{  
-				cst::Callstack const callstack;  
+				cst::Callstack_Trace const callstack;  
   
 				for(auto const& line : callstack.symbol_strings())  
 					std::cout << line << std::endl;  
