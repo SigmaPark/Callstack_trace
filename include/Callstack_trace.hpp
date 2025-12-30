@@ -10,7 +10,7 @@
 #include <vector>
 
 
-namespace prac
+namespace cst
 {
 
 	class Callstack;
@@ -18,7 +18,7 @@ namespace prac
 }
 
 
-class prac::Callstack
+class cst::Callstack
 {
 public:
 	static constexpr std::size_t Max_stack_depth = 0x40 - 1;

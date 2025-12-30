@@ -11,7 +11,7 @@ int main(int const /*argc*/, char const* const /*argv*/ [])
 {
 	try
 	{
-		prac::test::Test_Callstack_trace::test();
+		cst::test::Test_Callstack_trace::test();
 	}
 	catch(std::exception& xc)
 	{
