@@ -4,8 +4,8 @@
 //========//========//========//========//=======#//========//========//========//========//=======#
 
 
-#include "Test_Callstack_trace.hpp"
-#include "Callstack_trace.hpp"
+#include "Test_Callstack_Trace.hpp"
+#include "Callstack_Trace.hpp"
 #include <iostream>
 
 
@@ -14,10 +14,10 @@ static void intro()
 	sgm::h2u::mdo 
 	<<	sgm::h2u::Title(L"Introduction to Callstack Trace Library")
 	<<	LR"(
-		The prac::Callstack library provides a sophisticated yet elegantly simple solution 
+		The cst::Callstack_Trace library provides a sophisticated yet elegantly simple solution 
 		for capturing and analyzing call stack information in modern C++ applications. Born from 
 		the necessity to debug complex software systems where understanding the execution flow 
-		is paramount, this library bridges the gap between raw debugging tools and practical 
+		is paramount, this library bridges the gap between raw debugging tools and csttical 
 		application development needs.
 		
 		Designed with cross-platform compatibility at its core, the library seamlessly adapts 
@@ -38,7 +38,7 @@ namespace test1_detail
 		auto Lambda_f 
 		=	[]
 			{
-				prac::Callstack const callstack;
+				cst::Callstack_Trace const callstack;
 
 				for(auto const& line : callstack.symbol_strings())
 					std::cout << line << std::endl;
@@ -73,7 +73,7 @@ static void Test01()
 	sgm::h2u::mdo
 	<<	sgm::h2u::Title(L"Basic Usage with Function Call Chain")
 	<<	LR"(
-		This example demonstrates the fundamental usage of the prac::Callstack library 
+		This example demonstrates the fundamental usage of the cst::Callstack_Trace library 
 		by capturing a call stack within a nested function call scenario. The test creates 
 		a simple call chain: func1() calls func2(), which then captures the stack trace 
 		from within a lambda function.
@@ -92,7 +92,7 @@ namespace test2_detail
 	static void wrapper_level2()
 	{
 		// Skip 2 frames: this function and wrapper_level1
-		prac::Callstack const callstack{2};
+		cst::Callstack_Trace const callstack{2};
 
 		auto const strings = callstack.symbol_strings();
 
@@ -128,7 +128,7 @@ static void Test02()
 	<<	LR"(
 		This test demonstrates the frame skipping feature that allows debugging tools
 		to exclude their own wrapper functions from the call stack output. By passing
-		a skip count to the Callstack constructor, the top N frames can be hidden,
+		a skip count to the Callstack_Trace constructor, the top N frames can be hidden,
 		revealing only the meaningful application-level call chain.
 		)"_mdo;
 
@@ -138,7 +138,7 @@ static void Test02()
 }
 
 
-SGM_HOW2USE_TESTS(prac::test::Test_, Callstack_trace, /**/)
+SGM_HOW2USE_TESTS(cst::test::Test_, Callstack_Trace, /**/)
 {   ::intro
 ,	::Test01
 ,	::Test02

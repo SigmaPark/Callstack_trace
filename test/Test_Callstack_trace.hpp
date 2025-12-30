@@ -7,9 +7,9 @@
 #include "SGM/How2use.hpp"
 
 
-namespace prac::test
+namespace cst::test
 {
 
-    SGM_HOW2USE_CLASS(Test_, Callstack_trace, /**/);
+    SGM_HOW2USE_CLASS(Test_, Callstack_Trace, /**/);
 
 }

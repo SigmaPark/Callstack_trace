@@ -10,20 +10,20 @@
 #include <vector>
 
 
-namespace prac
+namespace cst
 {
 
-	class Callstack;
+	class Callstack_Trace;
 
 }
 
 
-class prac::Callstack
+class cst::Callstack_Trace
 {
 public:
 	static constexpr std::size_t Max_stack_depth = 0x40 - 1;
 
-	Callstack(unsigned int skip_frames = 0);
+	Callstack_Trace(unsigned int skip_frames = 0);
 
 	auto begin() const noexcept-> void const* const*{  return _address_arr + 1 + _skip_frames;  }
 	auto end() const noexcept-> void const* const*{  return begin() + size(); }
