@@ -33,3 +33,7 @@ target_link_libraries(
 	${SOLUTION_TITLE}_lib
     How2use_lib
 )
+# backtrace_symbols only resolves names in the dynamic symbol table, so export them (-rdynamic).
+if(UNIX)
+	set_target_properties(${TEST_PROJECT_TITLE} PROPERTIES ENABLE_EXPORTS ON)
+endif()

@@ -1,154 +1,179 @@
 /*  SPDX-FileCopyrightText: (c) 2025 Jin-Eon Park <greengb@naver.com> <sigma@gm.gist.ac.kr>
 *   SPDX-License-Identifier: MIT License
 */
-//========//========//========//========//=======#//========//========//========//========//=======#
+//--//--//--//--//-$//--//--//--//--//-$//--//--//--//--//-$//--//--//--//--//-$//--//--//--//--//-$
 
+#include "Callstack_trace.hpp"
+#include <algorithm>
+#include <cassert>
 
-#include "Callstack_Trace.hpp"
-
-
-#ifdef WIN32
-template<class T>
-class Useless
-{
-public:
-	operator T&() const noexcept{  return *&*this;  }
-	auto operator&() const noexcept-> T*{  return reinterpret_cast<T*>(_buf);  }
-
-private:
-	mutable std::byte _buf[sizeof(T)];
-};
-
-
+#ifdef _WIN32
+#define NOMINMAX
 #include <Windows.h>
 #include <DbgHelp.h>
+#include <sstream>
 #pragma comment(lib, "dbghelp.lib")
 
+namespace{
+	// An out-parameter nobody is going to read.
+	template<class T>
+	class Useless{
+	public:
+		auto operator&() const noexcept->T *{ return reinterpret_cast<T *>(_buf); }
+	private:
+		alignas(T) mutable std::byte _buf[sizeof(T)];
+	};
 
-struct _Symbol_buffer : public SYMBOL_INFO
+	struct Symbol_Buffer
+	: public SYMBOL_INFO{
+		Symbol_Buffer() noexcept
+		: SYMBOL_INFO{}, _name_tail{}{
+			SYMBOL_INFO::MaxNameLen = static_cast<ULONG>(_Name_capacity);
+			SYMBOL_INFO::SizeOfStruct = sizeof(SYMBOL_INFO);
+		}
+	private:
+		static std::size_t constexpr _Name_capacity = 0x100;
+
+		// Never touched by name; SymFromAddr writes into it through SYMBOL_INFO::Name.
+		char _name_tail[_Name_capacity];
+	};
+
+	auto Symbol_string(HANDLE const process, void const * const address)->std::string{
+		if(address == nullptr){ return ""; }
+
+		auto const addr = reinterpret_cast<DWORD64>(address);
+
+		Symbol_Buffer const  
+			symbol
+			= [process, addr]{
+				Symbol_Buffer res;
+
+				SymFromAddr(process, addr, nullptr, &res);
+
+				return res;
+			}()
+		;
+
+		IMAGEHLP_LINE64 line{ sizeof(IMAGEHLP_LINE64) };
+		std::ostringstream oss;
+
+		oss << '[' << address << "] ";
+
+		if( SymGetLineFromAddr64(process, addr, &Useless<DWORD>{}, &line) ){
+			oss << line.FileName << '(' << line.LineNumber << ')';
+		} else{
+			oss << "No line info";
+		}
+
+		oss << " : " << symbol.Name;
+
+		return oss.str();
+	}
+}
+//--//--//--//--//-$//--//--//--//--//-$//--//--//--//--//-$//--//--//--//--//-$//--//--//--//--//-$
+
+cst::Callstack_Trace::Callstack_Trace(std::size_t const skip_frames)
+:
+	_address_arr{},
+	_depth(
+		std::max<std::size_t>(
+			CaptureStackBackTrace(0, Max_stack_depth + 1, _address_arr, &Useless<ULONG>{}), 1
+		)
+		- 1
+	),
+	_skip_frames(skip_frames)
 {
-	_Symbol_buffer() noexcept;
+	assert(_depth >= _skip_frames);
+}
 
-private:
-	static constexpr std::size_t _String_buffer_size_for_name = 0x100;
-	
-	// Won't be used directly but will be overwrited by pointer.
-	char _buffer_for_name_string[_String_buffer_size_for_name]; 
-};
+auto cst::Callstack_Trace::symbol_strings() const->std::vector<std::string>{
+	HANDLE const  
+		cur_process
+		= []{
+			HANDLE const res = GetCurrentProcess();
 
-
-static auto _Symbol_string(void* const handle, void const* const address)-> std::string;
-//--------//--------//--------//--------//-------#//--------//--------//--------//--------//-------#
-
-
-cst::Callstack_Trace::Callstack_Trace(unsigned int skip_frames)
-:	_address_arr{0, }
-,	_depth( CaptureStackBackTrace(0, Max_stack_depth + 1, _address_arr, &Useless<ULONG>{}) - 1 )
-,	_skip_frames(skip_frames)
-{}
-
-
-auto cst::Callstack_Trace::symbol_strings() const-> std::vector<std::string>
-{
-	HANDLE const cur_handle
-	=	[]
-		{
-			HANDLE res = GetCurrentProcess();
-			
-			SymInitialize(res, NULL, TRUE);
-			SymSetOptions(SYMOPT_LOAD_LINES);
+			SymSetOptions(SymGetOptions() | SYMOPT_LOAD_LINES);
+			SymInitialize(res, nullptr, TRUE);
 
 			return res;
-		}();
+		}()
+	;
 
 	std::vector<std::string> res;
-	
+
 	res.reserve(size());
 
-	for(auto const address : *this)
-		res.emplace_back( ::_Symbol_string(cur_handle, address) );
+	for(auto const address : *this){
+		res.emplace_back( Symbol_string(cur_process, address) );
+	}
 
 	return res;
 }
-
-
-auto _Symbol_string(void* const handle, void const* const address)-> std::string
-{
-	if(address == nullptr)
-		return "";
-
-
-	auto const addr = reinterpret_cast<DWORD64>(address);
-
-	::_Symbol_buffer const symbol
-	=	[handle, addr]
-		{
-			::_Symbol_buffer res;
-
-			SymFromAddr(handle, addr, 0, &res);
-
-			return res;
-		}();
-
-	std::size_t constexpr Max_string_size_per_line = 0x400;
-	char buffer[Max_string_size_per_line] = {0, };
-
-	if
-	(	IMAGEHLP_LINE64 line{sizeof(IMAGEHLP_LINE64)}
-	;	SymGetLineFromAddr64(handle, addr, &Useless<DWORD>{}, &line)
-	)
-		sprintf_s
-		(	buffer, Max_string_size_per_line, "[%p] %s(%d) : %s"
-		,	address, line.FileName, line.LineNumber, symbol.Name
-		);
-	else
-		sprintf_s
-		(	buffer, Max_string_size_per_line, "[%p] No line info : %s"
-		,	address, symbol.Name
-		);
-
-	return buffer;	
-}
-//--------//--------//--------//--------//-------#//--------//--------//--------//--------//-------#
-
-
-::_Symbol_buffer::_Symbol_buffer() noexcept : _buffer_for_name_string{0, }
-{
-	SYMBOL_INFO::MaxNameLen = static_cast<ULONG>(_String_buffer_size_for_name);
-	SYMBOL_INFO::SizeOfStruct = sizeof(SYMBOL_INFO);
-}
-//========//========//========//========//=======#//========//========//========//========//=======#
-
+//--//--//--//--//-$//--//--//--//--//-$//--//--//--//--//-$//--//--//--//--//-$//--//--//--//--//-$
 
 #elif defined(__unix__) || defined(__unix) || defined(unix)
+#include <cstdlib>
+#include <cxxabi.h>
 #include <execinfo.h>
 #include <memory>
 
+namespace{
+	// backtrace_symbols yields "module(mangled+offset) [address]". Demangle the part in parentheses,
+	// or return the line untouched when there is no symbol or it is not a C++ name.
+	auto Demangled(char const* const line)->std::string{
+		std::string res = line;
 
-cst::Callstack_Trace::Callstack_Trace(unsigned int skip_frames)
-:	_address_arr{0, }
-,	_depth( backtrace(_address_arr, Max_stack_depth + 1) - 1 )
-,	_skip_frames(skip_frames)
-{}
+		auto const open_pos = res.find('(');
+		auto const plus_pos = res.find('+', open_pos);
 
+		if(open_pos == std::string::npos || plus_pos == std::string::npos || plus_pos == open_pos + 1)
+			return res;
 
-auto cst::Callstack_Trace::symbol_strings() const-> std::vector<std::string>
-{
-	std::unique_ptr<char*, decltype(&free)> strings
-	(	backtrace_symbols(const_cast<void**>(begin()), size())
-	,	&free
-	);
+		std::string const mangled = res.substr(open_pos + 1, plus_pos - open_pos - 1);
+		int status = -1;
 
-	std::vector<std::string> res;
-	
-	res.reserve(size());
+		std::unique_ptr<char, void(*)(void*)> const
+			name( abi::__cxa_demangle(mangled.c_str(), nullptr, nullptr, &status), &std::free )
+		;
 
-	for(std::size_t i = 0;  i < size();  ++i)
-		res.emplace_back(strings.get()[i]);
+		if(status == 0 && name != nullptr)
+			res.replace(open_pos + 1, mangled.size(), name.get());
 
-	return res;	
+		return res;
+	}
 }
 
-#else
+cst::Callstack_Trace::Callstack_Trace(std::size_t const skip_frames)
+:
+	_address_arr{},
+	_depth(  std::max( backtrace(_address_arr, Max_stack_depth + 1), 1 ) - 1  ),
+	_skip_frames(skip_frames)
+{
+	assert(_depth >= _skip_frames);
+}
 
+auto cst::Callstack_Trace::symbol_strings() const->std::vector<std::string>{
+	std::unique_ptr<char *, void(*)(void *)> const  
+		strings(
+			backtrace_symbols( _address_arr + _skip_frames + 1, static_cast<int>(size()) ),
+			&std::free
+		)
+	;
+
+	std::vector<std::string> res;
+
+	if(strings == nullptr)
+		return res;
+
+	res.reserve( size() );
+
+	for(std::size_t i = 0;  i < size();  ++i)
+		res.push_back( Demangled(strings.get()[i]) );
+
+	return res;
+}
+//--//--//--//--//-$//--//--//--//--//-$//--//--//--//--//-$//--//--//--//--//-$//--//--//--//--//-$
+
+#else
+#error "cst::Callstack_Trace is not implemented for this platform."
 #endif

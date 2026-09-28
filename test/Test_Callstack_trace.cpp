@@ -4,8 +4,8 @@
 //========//========//========//========//=======#//========//========//========//========//=======#
 
 
-#include "Test_Callstack_Trace.hpp"
-#include "Callstack_Trace.hpp"
+#include "Test_Callstack_trace.hpp"
+#include "Callstack_trace.hpp"
 #include <iostream>
 
 
@@ -33,7 +33,7 @@ BEGIN_CODE_BLOCK(test1_ex)
 namespace test1_detail
 {
 
-	static void func2()
+	void func2()
 	{
 		auto Lambda_f 
 		=	[]
@@ -59,7 +59,7 @@ namespace test1_detail
 		Lambda_f();
 	}
 
-	static void func1()
+	void func1()
 	{
 		func2();
 	}

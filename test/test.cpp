@@ -4,13 +4,17 @@
 //========//========//========//========//=======#//========//========//========//========//=======#
 
 
-#include "Test_Callstack_Trace.hpp"
+#include "Test_Callstack_trace.hpp"
+#include <locale>
 
 
 int main(int const /*argc*/, char const* const /*argv*/ [])
 {
 	try
 	{
+		// Temporary: How2use reads UTF-8 sources through std::wifstream with the global locale.
+		std::locale::global( std::locale("") );
+
 		cst::test::Test_Callstack_Trace::test();
 	}
 	catch(std::exception& xc)
