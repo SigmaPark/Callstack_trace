@@ -14,19 +14,30 @@
 #include <sstream>
 #pragma comment(lib, "dbghelp.lib")
 
-// An out-parameter nobody is going to read.
+namespace{
+	namespace inner{
+		// An out-parameter nobody is going to read.
+		template<class T>
+		class Useless;
+
+		struct Symbol_Buffer;
+
+		auto Symbol_string(HANDLE const process, void const * const address)->std::string;
+	}
+}
+//--//--//--//--//-$//--//--//--//--//-$//--//--//--//--//-$//--//--//--//--//-$//--//--//--//--//-$
+
 template<class T>
-class Useless{
+class inner::Useless{
 public:
 	auto operator&() const && noexcept->T *{ return reinterpret_cast<T *>(_buf); }
 
 private:
 	alignas(T) mutable std::byte _buf[sizeof(T)];
 };
-//--//--//--//--//-$//--//--//--//--//-$//--//--//--//--//-$//--//--//--//--//-$//--//--//--//--//-$
 
-struct _Symbol_Buffer : public SYMBOL_INFO{
-	_Symbol_Buffer() noexcept;
+struct inner::Symbol_Buffer : public SYMBOL_INFO{
+	Symbol_Buffer() noexcept;
 
 private:
 	static std::size_t constexpr _Name_capacity = 0x100;
@@ -35,24 +46,23 @@ private:
 	char _name_tail[_Name_capacity];
 };
 
-_Symbol_Buffer::_Symbol_Buffer() noexcept
+inner::Symbol_Buffer::Symbol_Buffer() noexcept
 : SYMBOL_INFO{}, _name_tail{}{
 	SYMBOL_INFO::MaxNameLen = static_cast<ULONG>(_Name_capacity);
 	SYMBOL_INFO::SizeOfStruct = sizeof(SYMBOL_INFO);
 }
 
-
-static auto _Symbol_string(HANDLE const process, void const * const address)->std::string{
+auto inner::Symbol_string(HANDLE const process, void const * const address)->std::string{
 	if(!address){
 		return "";
 	}
 
 	auto const addr = reinterpret_cast<DWORD64>(address);
 
-	_Symbol_Buffer const  
+	Symbol_Buffer const  
 		symbol
 		= [process, addr]{
-			_Symbol_Buffer res;
+			Symbol_Buffer res;
 
 			SymFromAddr(process, addr, nullptr, &res);
 
@@ -83,7 +93,8 @@ cst::Callstack_Trace::Callstack_Trace(std::size_t const skip_frames)
 	_address_arr{},
 	_depth(
 		std::max<std::size_t>(
-			CaptureStackBackTrace(0, Max_stack_depth + 1, _address_arr, &Useless<ULONG>{}), 1
+			CaptureStackBackTrace(0, Max_stack_depth + 1, _address_arr, &inner::Useless<ULONG>{}),
+			1
 		)
 		- 1
 	),
@@ -109,7 +120,7 @@ auto cst::Callstack_Trace::symbol_strings() const->std::vector<std::string>{
 	res.reserve(size());
 
 	for(auto const address : *this){
-		res.emplace_back( _Symbol_string(cur_process, address) );
+		res.emplace_back( inner::Symbol_string(cur_process, address) );
 	}
 
 	return res;
@@ -122,7 +133,14 @@ auto cst::Callstack_Trace::symbol_strings() const->std::vector<std::string>{
 #include <execinfo.h>
 #include <memory>
 
-static auto _Demangled(char const * const line)->std::string{
+namespace{
+	namespace inner{
+		auto Demangled(char const * const line)->std::string;
+	}
+}
+//--//--//--//--//-$//--//--//--//--//-$//--//--//--//--//-$//--//--//--//--//-$//--//--//--//--//-$
+
+auto inner::Demangled(char const * const line)->std::string{
 	std::string res = line;
 
 	auto const open_pos = res.find('('), plus_pos = res.find('+', open_pos);
@@ -144,6 +162,7 @@ static auto _Demangled(char const * const line)->std::string{
 
 	return res;
 }
+//--//--//--//--//-$//--//--//--//--//-$//--//--//--//--//-$//--//--//--//--//-$//--//--//--//--//-$
 
 cst::Callstack_Trace::Callstack_Trace(std::size_t const skip_frames)
 :
@@ -170,7 +189,7 @@ auto cst::Callstack_Trace::symbol_strings() const->std::vector<std::string>{
 	res.reserve(size());
 
 	for(std::size_t i = 0; i < size(); ++i){
-		res.emplace_back( _Demangled(strings.get()[i]) );
+		res.emplace_back( inner::Demangled(strings.get()[i]) );
 	}
 
 	return res;
@@ -180,3 +199,4 @@ auto cst::Callstack_Trace::symbol_strings() const->std::vector<std::string>{
 #else
 #error "cst::Callstack_Trace is not implemented for this platform."
 #endif
+
