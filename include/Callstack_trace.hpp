@@ -26,7 +26,9 @@ public:
 	auto size() const noexcept->std::size_t{ return _depth - _skip_frames; }
 
 	auto symbol_strings() const->std::vector<std::string>;
+
 private:
 	void *_address_arr[Max_stack_depth + 1];
 	std::size_t _depth, _skip_frames;
 };
+
